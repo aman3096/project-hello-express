@@ -3,9 +3,13 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+var port = 3000
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+
+const swaggerUI = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
+
 
 var app = express();
 
@@ -21,6 +25,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -38,4 +44,7 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
 module.exports = app;
