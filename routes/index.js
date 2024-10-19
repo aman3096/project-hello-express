@@ -3,15 +3,17 @@ var router = express.Router();
 
 /**
  * @swagger
- * /sample:
+ * /users:
  *   get:
- *     summary: Returns a sample message
+ *     summary: Get a list of users
+ *     description: Retrieve a list of users from the database.
  *     responses:
  *       200:
- *         description: A successful response
+ *         description: Successful response with a list of users.
  */
-router.get('/sample', function(req, res, next) {
-  res.send("A successful response");
+router.get('/users', (req, res) => {
+  // Your logic to fetch and return users
+  res.json({ users: [] });
 });
 
 module.exports = router;
