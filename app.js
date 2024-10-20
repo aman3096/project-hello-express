@@ -3,7 +3,7 @@ const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 const { Pool } = require('pg');
-
+//adding comment to check if its working out
 const app = express();
 
 const port = process.env.PORT || 3000;
