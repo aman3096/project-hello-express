@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000;
 const pool = new Pool({
   user: process.env.DB_USERNAME, // replace with your PostgreSQL username
   host: process.env.DB_HOST,
-  database: 'booksdb', // replace with your database name
+  database: process.env.DB_NAME, // replace with your database name
   password: process.env.DB_PASSWORD, // replace with your PostgreSQL password
   port: process.env.DB_PORT,
 });
