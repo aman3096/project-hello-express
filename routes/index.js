@@ -15,5 +15,25 @@ router.get('/users', (req, res) => {
   // Your logic to fetch and return users
   res.json({ users: [] });
 });
-
+/**
+ * @swagger
+ * /api/auth/login:
+ *   get:
+ *     summary: Login the users 
+ *     description: Login the users using JWT
+ *     responses:
+ *       200:
+ *         description: Successful response with a list of users.
+ */
+router.post('/api/auth/login', (req, res)=> {
+  const jwt_const_token = {
+    "token": "JWT Token", 
+    "user": {
+      "id":"random-constant-id",
+      "username": "random-constant-username",
+      "email": req.body.email
+    }    
+  }
+  res.json(jwt_const_token)
+})
 module.exports = router;
