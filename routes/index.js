@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 var router = express.Router();
+const jsonwebtoken = require("jsonwebtoken");
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -34,17 +35,22 @@ router.get('/users', (req, res) => {
  *       200:
  *         description: Successful response with a list of users.
  */
-router.post('/auth/login', (req, res)=> {
-
-  const jwt_const_token = {
-    "token": "JWT Token", 
-    "user": {
-      "id":"random-constant-id",
-      "username": "random-constant-username",
-      "email": req.body.email
-    }    
+router.post('/auth/login', async (req, res)=> {
+  const { email, password } = req.body;
+  console.log(`${email} is trying to login ..`);
+  const values = [ email, password ]
+  const query = 'SELECT * FROM users WHERE email=$1 AND password_hash=$2'
+  const result = await pool.query(query,values);
+  if (result.rows.length==1) {
+    return res.json({
+      token: jsonwebtoken.sign({ email: email }, process.env.JWT_SECRET),
+    });
   }
-  res.json(jwt_const_token)
+
+  return res
+    .status(401)
+    .json({ message: "Invalid Credentials" });
+
 })
 
 router.post('/auth/register', async (req,res) => {
