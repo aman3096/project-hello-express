@@ -1,8 +1,15 @@
-import * as express from 'express';
-import { pool } from '../app.js';
-import { v4 as uuid } from 'uuid';
+const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 var router = express.Router();
+const { Pool } = require('pg');
 
+const pool = new Pool({
+  user: process.env.DB_USERNAME, // replace with your PostgreSQL username
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME, // replace with your database name
+  password: process.env.DB_PASSWORD, // replace with your PostgreSQL password
+  port: process.env.DB_PORT,
+});
 /**
  * @swagger
  * /users:
@@ -42,15 +49,16 @@ router.post('/auth/login', (req, res)=> {
 
 router.post('/auth/register', async (req,res) => {
   try {
-    const random_uuid = uuid();
+    const random_uuid = uuidv4();
+    console.log("random", random_uuid);
     const sql_query = 'INSERT INTO users(id, username, email, password_hash) VALUES($1, $2, $3, $4)';
-    const values = [random_uuid, req.body.name, req.body.email, req.body.password ]
+    const values = [random_uuid, req.body.username, req.body.email, req.body.password ]
     const result = await pool.query(sql_query, values);
     res.send("User Registered Successful");
   } catch(err) {
-
+    console.log(err);
     res.send("Server error occured");
   }
 
 })
-export default router;
+module.exports = router;
