@@ -50,7 +50,6 @@ router.post('/auth/login', (req, res)=> {
 router.post('/auth/register', async (req,res) => {
   try {
     const random_uuid = uuidv4();
-    console.log("random", random_uuid);
     const sql_query = 'INSERT INTO users(id, username, email, password_hash) VALUES($1, $2, $3, $4)';
     const values = [random_uuid, req.body.username, req.body.email, req.body.password ]
     const result = await pool.query(sql_query, values);
