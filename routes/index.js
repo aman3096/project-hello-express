@@ -40,16 +40,18 @@ router.post('/auth/login', async (req, res)=> {
   const refreshToken = jsonwebtoken.sign({ email: email}, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
   })
+  const response = {}
   if (result.rows.length==1) {
-    return res.json({
+    response = {
         accessToken,
         refreshToken
-      });
-    }
+      };
+  } else {
+    response = { message: "Invalid Credentials" }
+    res.status(401);
+  }
 
-  return res
-    .status(401)
-    .json({ message: "Invalid Credentials" });
+  return res.json(response);
 
 })
 
@@ -58,7 +60,7 @@ router.post('/auth/register', async (req,res) => {
     const random_uuid = uuidv4();
     const sql_query = 'INSERT INTO users(id, username, email, password_hash) VALUES($1, $2, $3, $4)';
     const values = [random_uuid, req.body.username, req.body.email, req.body.password ]
-    const result = await pool.query(sql_query, values);
+    await pool.query(sql_query, values);
     res.send("User Registered Successful");
   } catch(err) {
     console.log(err);
@@ -70,15 +72,14 @@ router.post('/auth/register', async (req,res) => {
 router.post('/auth/refresh', (req, res) => {
   const refreshToken = req.body.refreshToken;
   if (!refreshToken) {
-      return res.status(400).json({ error: 'Refresh token is required' });
+      res.status(400).json({ error: 'Refresh token is required' });
   }
-  try   
-  {
+  try {
       const accessToken = generateAccessToken(refreshToken);
-      return res.json({ token: accessToken });
+      res.json({ token: accessToken });
   } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -102,13 +103,21 @@ router.post('/users/profile', authenticate, async (req, res) => {
   const query = 'SELECT id, username, email, role from users WHERE email=$1'
   const values = [ email ]
   const result = await pool.query(query,values);
+  let output = {}
   if(result.rows.length) {
-    const output = {
-      data: result.rows
+    output = {
+      data: result.rows,
+      message: "Profile fetch successful"
     }
-    return res.send(output)
+  } else {
+    output = {
+      data: [],
+      message: "No data found"
+    }
+    res.status(204)
   }
-  return res.status(204).send("No data found");
+  return res.send(output);
+  
 })
 
 router.get("/protected", authenticate, (req, res) => {
