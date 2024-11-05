@@ -4,6 +4,8 @@ var router = express.Router();
 const jsonwebtoken = require("jsonwebtoken");
 const { Pool } = require('pg');
 
+const authenticate = require('../middlewares/authenticate');
+
 const pool = new Pool({
   user: process.env.DB_USERNAME, // replace with your PostgreSQL username
   host: process.env.DB_HOST,
@@ -21,7 +23,7 @@ const pool = new Pool({
  *       200:
  *         description: Successful response with a list of users.
  */
-router.get('/users', (req, res) => {
+router.get('/users', authenticate, (req, res) => {
   // Your logic to fetch and return users
   res.json({ users: [] });
 });
@@ -41,11 +43,18 @@ router.post('/auth/login', async (req, res)=> {
   const values = [ email, password ]
   const query = 'SELECT * FROM users WHERE email=$1 AND password_hash=$2'
   const result = await pool.query(query,values);
+  const accessToken = jsonwebtoken.sign({ email: email }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRATION_TIME,
+  });
+  const refreshToken = jsonwebtoken.sign({ email: email}, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
+  })
   if (result.rows.length==1) {
     return res.json({
-      token: jsonwebtoken.sign({ email: email }, process.env.JWT_SECRET),
-    });
-  }
+        accessToken,
+        refreshToken
+      });
+    }
 
   return res
     .status(401)
@@ -67,24 +76,9 @@ router.post('/auth/register', async (req,res) => {
 
 })
 
-router.get("/super-secure-resource", (req, res) => {
-  if (!req.headers.authorization) {
-    return res.status(401).json({ error: "Not Authorized" });
-  }
 
-  // Bearer <token>>
-  const authHeader = req.headers.authorization;
-  const token = authHeader.split(" ")[1];
-
-  try {
-    // Verify the token is valid
-    const { user } = jsonwebtoken.verify(token, process.env.JWT_SECRET);
-    return res.status(200).json({
-      message: `Congrats ${user}! You can now accesss the super secret resource`,
-    });
-  } catch (error) {
-    return res.status(401).json({ error: "Not Authorized" });
-  }
-});
+router.get("/protected", authenticate, (req, res) => {
+  res.send("Welcome to protected route");
+})
 
 module.exports = router;

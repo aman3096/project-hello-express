@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const { Pool } = require('pg');
+const authenticate = require('./middlewares/authenticate');
 
 const swaggerSpec = require('./swagger');
 const router = require('./routes');
@@ -22,7 +23,7 @@ const pool = new Pool({
 app.use(express.json());
 app.use('/api', router);
 // Sample route to get data from PostgreSQL
-app.get('/api/data', async (req, res) => {
+app.get('/api/data', authenticate, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM books'); // replace with your table name
     res.json(result.rows);
