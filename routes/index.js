@@ -6,6 +6,10 @@ const { Pool } = require('pg');
 
 const authenticate = require('../middlewares/authenticate');
 
+function generateAccessToken() {
+    const accessToken = jsonwebtoken.sign({ user: 'your_user_data' }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    return accessToken;
+}
 const pool = new Pool({
   user: process.env.DB_USERNAME, // replace with your PostgreSQL username
   host: process.env.DB_HOST,
@@ -13,20 +17,7 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD, // replace with your PostgreSQL password
   port: process.env.DB_PORT,
 });
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: Get a list of users
- *     description: Retrieve a list of users from the database.
- *     responses:
- *       200:
- *         description: Successful response with a list of users.
- */
-router.get('/users', authenticate, (req, res) => {
-  // Your logic to fetch and return users
-  res.json({ users: [] });
-});
+
 /**
  * @swagger
  * /api/auth/login:
@@ -76,9 +67,37 @@ router.post('/auth/register', async (req,res) => {
 
 })
 
+router.post('/auth/refresh', (req, res) => {
+  const refreshToken = req.body.refreshToken;
+  if (!refreshToken) {
+      return res.status(400).json({ error: 'Refresh token is required' });
+  }
+  try   
+  {
+      const accessToken = generateAccessToken(refreshToken);
+      return res.json({ token: accessToken });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/users/profile', authenticate, async (req, res) => {
+  const { email } = req.body;
+  const query = 'SELECT id, username, email, role from users WHERE email=$1'
+  const values = [ email ]
+  const result = await pool.query(query,values);
+  if(result.rows.length) {
+    const output = {
+      data: result.rows
+    }
+    return res.send(output)
+  }
+  return res.status(204).send("No data found");
+})
 
 router.get("/protected", authenticate, (req, res) => {
-  res.send("Welcome to protected route");
+  return res.send("Welcome to protected route");
 })
 
 module.exports = router;
