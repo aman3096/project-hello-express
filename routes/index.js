@@ -82,6 +82,21 @@ router.post('/auth/refresh', (req, res) => {
   }
 });
 
+router.post('/auth/logout', (req,res)=> {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+      return res.status(401).json({ error: 'Unauthorized'});
+  }
+  try{
+    // invalidateToken(token);
+    res.clearCookie('your_token_cookie_name'); // Clear any token cookie
+    return res.json({ message: 'Logged out successfully' });
+  } catch(err) {
+    console.error(err);
+    return res.status("Server error occurred");
+  }
+  
+})
 router.post('/users/profile', authenticate, async (req, res) => {
   const { email } = req.body;
   const query = 'SELECT id, username, email, role from users WHERE email=$1'
