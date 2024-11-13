@@ -90,4 +90,25 @@ router.put('/', authenticate, async (req, res) => {
     }
 })
 
+router.delete('/', authenticate, async (req, res) => {
+    const { id } = req.query
+    let output;
+    if(!id) {
+       output = "Must send correct id";
+
+    }
+    const searchQuery = "SELECT * FROM accounts WHERE id=$1";
+    const values = [id]
+
+    const result = await pool.query(searchQuery, values)
+    if(!result.rows)
+        output = `No account found with the id ${id}`
+    else{
+        const deleteQuery = `DELETE FROM accounts WHERE id=$1`;
+        await pool.query(deleteQuery, values);
+        output = `Account Deleted Successfully`
+    }
+    res.send(output);
+
+})
 module.exports = router;
