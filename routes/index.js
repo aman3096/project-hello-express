@@ -120,8 +120,5 @@ router.post('/users/profile', authenticate, async (req, res) => {
   
 })
 
-router.get("/protected", authenticate, (req, res) => {
-  return res.send("Welcome to protected route");
-})
 
 module.exports = router;
