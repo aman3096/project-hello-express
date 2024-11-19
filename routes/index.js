@@ -40,7 +40,7 @@ router.post('/auth/login', async (req, res)=> {
   const refreshToken = jsonwebtoken.sign({ email: email}, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
   })
-  const response = {}
+  let response = {}
   if (result.rows.length==1) {
     response = {
         accessToken,
