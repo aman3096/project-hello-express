@@ -71,10 +71,10 @@ router.get('/:id', authenticate, async (req, res, next)=> {
     }
   })
 
-  router.put('/', authenticate, async (req, res, next) => {
+  router.put('/:budgetId', authenticate, async (req, res, next) => {
     try {
         const { category, amount } = req.body; 
-        const id = req.params.id
+        const id = req.params.budgetId
         const params = [ amount, id ]
         const query = "UPDATE budgets SET limit_amount= $1 WHERE id = $2"
         const results = await pool.query(query, params);
@@ -89,7 +89,31 @@ router.get('/:id', authenticate, async (req, res, next)=> {
     } catch(err) {
         res.send("Server Error Occurred");
     }
-  })  
+  }) 
+
+  router.delete('/:budgetId', authenticate, async (req, res, next) => {
+    try {
+        const { budgetId } = req.params;
+        const queryFind = "SELECT * FROM budgets WHERE id = $1";
+        const params = [ budgetId ];
+        const deleteQuery = "DELETE * FROM budgets WHERE id = $1";
+        const result = await pool.query(queryFind, params);
+        let response = {}
+        if(result?.rows.length) {
+            await pool.query(deleteQuery, params);
+            response = {
+                message: `${budgetId} Deleted Successfully`,
+            }
+        } else {
+            response = {
+                message: `No ${budgetId} found`
+            }
+        }
+        res.send(response);
+    } catch(err) {
+        res.send("Server Error Occurred");
+    }
+  })
   
   module.exports = router;
   

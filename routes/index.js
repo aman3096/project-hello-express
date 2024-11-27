@@ -98,6 +98,7 @@ router.post('/auth/logout', (req,res)=> {
   }
   
 })
+
 router.post('/users/profile', authenticate, async (req, res) => {
   const { email } = req.body;
   const query = 'SELECT id, username, email, role from users WHERE email=$1'

@@ -6,6 +6,7 @@ const swaggerSpec = require('./swagger');
 const router = require('./routes');
 const accountRouter = require('./routes/account');
 const budgetRouter = require('./routes/budget');
+const goalsRouter = require('./routes/goals')
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use('/api', router);
 app.use('/api/accounts', accountRouter);
 app.use('/api/budgets', budgetRouter);
+app.use('/api/goals', goalsRouter);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.listen(port, () => {
