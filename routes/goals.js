@@ -31,7 +31,8 @@ router.get('/', authenticate, async (req, res, next) => {
         }
         res.send(response);
     } catch(err) {
-        res.send("Server Error Occurred");
+        console.error('Error getting Goal:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -58,7 +59,8 @@ router.post('/', authenticate, async (req, res, next) => {
         }
         res.send(response)
     } catch(err) {
-        res.send("Server Error Occurred")
+        console.error('Error adding Goal:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -85,7 +87,8 @@ router.put('/:goalId', authenticate, async (req, res, next) => {
         }
         res.send(response)
     } catch(err) {
-        res.send("Server Error Occurred")
+        console.error('Error Updating Goal:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -111,7 +114,8 @@ router.delete('/:goalId', authenticate, async (req, res, next) => {
         }
         res.send(response)
     } catch(err) {
-        res.send("Server Error Occurred")
+        console.error('Error deleting goal:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 

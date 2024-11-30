@@ -31,8 +31,8 @@ router.get('/', authenticate, async (req,res)=> {
         }
         return res.send(response);
     } catch(err) {
-        console.error(err);
-        return res.status("Server error occurred");
+        console.error('Error getting Account:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -55,8 +55,8 @@ router.get('/transactions', authenticate, async (req,res)=> {
         }
         return res.send(response);
     } catch(err) {
-        console.error(err);
-        return res.status("Server error occurred");
+        console.error('Error getting Transactions:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -64,8 +64,7 @@ router.post('/', authenticate, async (req, res) => {
     const { name, type, initialBal } = req.body
     const random_uuid = uuidv4();
     let output;
-    try{
-
+    try {
         if(!name.length || !type.length || !initialBal.length) {
             output = {
                 message: "Please do not provide empty entries",
@@ -85,8 +84,8 @@ router.post('/', authenticate, async (req, res) => {
         } 
         res.send(output);
     } catch(err) {
-        console.error(err);
-        res.send("Server Error Occurred");
+        console.error('Error Adding Accounts:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -122,8 +121,8 @@ router.post('/transactions', authenticate, async (req, res) => {
         }
         res.send(output);
     } catch(err) {
-        console.error(err);
-        res.send("Server Error Occurred");
+        console.error('Error Adding Transactions:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -157,8 +156,8 @@ router.put('/', authenticate, async (req, res) => {
         } 
         res.send(output);
     } catch(err) {
-        console.error(err);
-        res.send("Server Error Occurred");
+        console.error('Error Updating Accounts:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
 
@@ -191,50 +190,59 @@ router.put('/transactions', authenticate, async (req, res) => {
         }
         res.send(output);
     } catch(err) {
-        console.error(err);
-        res.send("Server Error Occurred");
+        console.error('Error Updating Transactions:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 })
-
 
 router.delete('/', authenticate, async (req, res) => {
-    const { id } = req.query
-    let output;
-    if(!id) {
-       output = "Must send correct id";
-    } else {
-        const searchQuery = "SELECT * FROM accounts WHERE id=$1";
-        const values = [id]
-        const result = await pool.query(searchQuery, values)
-        if(!result.rows)
-            output = `No account found with the id ${id}`
-        else{
-            const deleteQuery = `DELETE FROM accounts WHERE id=$1`;
-            await pool.query(deleteQuery, values);
-            output = `Account Deleted Successfully`
+    try {
+        const { id } = req.query
+        let output;
+        if(!id) {
+        output = "Must send correct id";
+        } else {
+            const searchQuery = "SELECT * FROM accounts WHERE id=$1";
+            const values = [id]
+            const result = await pool.query(searchQuery, values)
+            if(!result.rows)
+                output = `No account found with the id ${id}`
+            else{
+                const deleteQuery = `DELETE FROM accounts WHERE id=$1`;
+                await pool.query(deleteQuery, values);
+                output = `Account Deleted Successfully`
+            }
         }
+        res.send(output);
+    } catch(err) {
+        console.error('Error Updating Accounts:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    res.send(output);
-
 })
+
 router.delete('/transactions', authenticate, async (req, res) => {
-    const { accountId } = req.query
-    let output;
-    if(!id) {
-       output = "Must send correct id";
-    } else {
-        const searchQuery = "SELECT * FROM accounts WHERE id=$1";
-        const values = [accountId]
-        const result = await pool.query(searchQuery, values)
-        if(!result.rows)
-            output = `No account found with the id ${id}`
-        else{
-            const deleteQuery = `DELETE FROM transactions WHERE account_id=$1`;
-            await pool.query(deleteQuery, values);
-            output = `Transaction Deleted Successfully `
+    try {
+        const { accountId } = req.query
+        let output;
+        if(!id) {
+        output = "Must send correct id";
+        } else {
+            const searchQuery = "SELECT * FROM accounts WHERE id=$1";
+            const values = [accountId]
+            const result = await pool.query(searchQuery, values)
+            if(!result.rows)
+                output = `No account found with the id ${id}`
+            else{
+                const deleteQuery = `DELETE FROM transactions WHERE account_id=$1`;
+                await pool.query(deleteQuery, values);
+                output = `Transaction Deleted Successfully `
+            }
         }
+        res.send(output);
+    } catch(err) {
+        console.error('Error Deleting Transactions:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    res.send(output);
 
 })
 module.exports = router;

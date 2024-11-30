@@ -23,8 +23,9 @@ router.get('/', authenticate, async (req, res, next)=> {
         }
         res.send(data);
     } catch(err) {
-        res.send('Server Error Occurred')
-    }
+        console.error('Error getting Budgets:', err);
+        res.status(500).json({ error: 'Internal server error' });
+     }
   });
 
 router.get('/:id', authenticate, async (req, res, next)=> {
@@ -47,7 +48,8 @@ router.get('/:id', authenticate, async (req, res, next)=> {
         }
         res.send(data);
     } catch(err) {
-        res.send('Server Error Occurred')
+        console.error('Error getting Budget id:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -67,7 +69,8 @@ router.get('/:id', authenticate, async (req, res, next)=> {
         }
         res.send(response);
     } catch(err) {
-        res.send("Server Error Occurred");
+        console.error('Error adding Budgets:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
   })
 
@@ -87,7 +90,8 @@ router.get('/:id', authenticate, async (req, res, next)=> {
         }
         res.send(response);
     } catch(err) {
-        res.send("Server Error Occurred");
+        console.error('Error updating Budget id:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
   }) 
 
@@ -111,7 +115,8 @@ router.get('/:id', authenticate, async (req, res, next)=> {
         }
         res.send(response);
     } catch(err) {
-        res.send("Server Error Occurred");
+        console.error('Error deleting BudgetId:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
   })
   

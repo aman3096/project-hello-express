@@ -29,29 +29,33 @@ const pool = new Pool({
  *         description: Successful response with a list of users.
  */
 router.post('/auth/login', async (req, res)=> {
-  const { email, password } = req.body;
-  console.log(`${email} is trying to login ..`);
-  const values = [ email, password ]
-  const query = 'SELECT * FROM users WHERE email=$1 AND password_hash=$2'
-  const result = await pool.query(query,values);
-  const accessToken = jsonwebtoken.sign({ email: email }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRATION_TIME,
-  });
-  const refreshToken = jsonwebtoken.sign({ email: email}, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
-  })
-  let response = {}
-  if (result.rows.length==1) {
-    response = {
-        accessToken,
-        refreshToken
-      };
-  } else {
-    response = { message: "Invalid Credentials" }
-    res.status(401);
-  }
+  try {
+    const { email, password } = req.body;
+    const values = [ email, password ]
+    const query = 'SELECT * FROM users WHERE email=$1 AND password_hash=$2'
+    const result = await pool.query(query,values);
+    const accessToken = jsonwebtoken.sign({ email: email }, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_EXPIRATION_TIME,
+    });
+    const refreshToken = jsonwebtoken.sign({ email: email}, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
+    })
+    let response = {}
+    if (result.rows.length==1) {
+      response = {
+          accessToken,
+          refreshToken
+        };
+    } else {
+      response = { message: "Invalid Credentials" }
+      res.status(401);
+    }
+    return res.json(response);
+  } catch(err) {
+    console.error('Error in logging in:', err);
+    res.status(500).json({ error: 'Internal server error' });
 
-  return res.json(response);
+  }
 
 })
 
@@ -61,12 +65,12 @@ router.post('/auth/register', async (req,res) => {
     const sql_query = 'INSERT INTO users(id, username, email, password_hash) VALUES($1, $2, $3, $4)';
     const values = [random_uuid, req.body.username, req.body.email, req.body.password ]
     await pool.query(sql_query, values);
-    res.send("User Registered Successful");
-  } catch(err) {
-    console.log(err);
-    res.send("Server error occured");
-  }
+    res.send("User Registered Successfully");
 
+  } catch(err) {
+    console.error('Error Registering Users:', err);
+    res.status(500).json({ error: 'Internal server error'});
+  }
 })
 
 router.post('/auth/refresh', (req, res) => {
@@ -100,25 +104,29 @@ router.post('/auth/logout', (req,res)=> {
 })
 
 router.post('/users/profile', authenticate, async (req, res) => {
-  const { email } = req.body;
-  const query = 'SELECT id, username, email, role from users WHERE email=$1'
-  const values = [ email ]
-  const result = await pool.query(query,values);
-  let output = {}
-  if(result.rows.length) {
-    output = {
-      data: result.rows,
-      message: "Profile fetch successful"
+  try {
+    const { email } = req.body;
+    const query = 'SELECT id, username, email, role from users WHERE email=$1'
+    const values = [ email ]
+    const result = await pool.query(query,values);
+    let output = {}
+    if(result.rows.length) {
+      output = {
+        data: result.rows,
+        message: "Profile fetch successful"
+      }
+    } else {
+      output = {
+        data: [],
+        message: "No data found"
+      }
+      res.status(204)
     }
-  } else {
-    output = {
-      data: [],
-      message: "No data found"
-    }
-    res.status(204)
+    return res.send(output);
+  } catch(err) {
+    console.error('Error getting Users profile:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-  return res.send(output);
-  
 })
 
 
