@@ -14,35 +14,107 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
+
+model Users {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String    @db.VarChar(50)
+  email        String    @unique @db.VarChar(100)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         String?   @default("User") @db.VarChar(20)
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt    DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+
+  @@map("users")
+  Budgets Budgets[]
+  Goals Goals[]
+}
+
+model Transaction {
+  id          Int       @id
+  accountId   Int?      @map("account_id")
+  amount      Decimal   @db.Decimal(15, 2)
+  category    String    @db.VarChar(100)
+  date        DateTime  @db.Date
+  type        String    @db.VarChar(20)
+  description String?   @db.Text
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  account     Account?  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+// Assuming you have an Account model defined like this:
+model Account {
+  id      Int           @id
+  // other account fields...
+  userId  Int           @map("user_id")
+  transactions  Transaction[]
+  name          String      @db.VarChar(100)
+  type          String      @db.VarChar(50)
+  balance       Decimal?    @default(0) @db.Decimal(15, 2)
+  createdAt     DateTime?   @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt     DateTime?   @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  @@map("accounts")
+}
+
+model Books {
+  id   Int     @id
+  name String  @db.VarChar(50)
+  genre String @db.VarChar(50)
+  publishYear String @db.VarChar(50)
+  isAvailable Boolean
+
+  @@map("books")
+
+}
+
+model Budgets {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  category     String    @db.VarChar(100)
+  limitAmount  Decimal   @db.Decimal(15, 2)
+  period       String    @db.VarChar(20) @default("monthly")
+  createdAt    DateTime? @default(now())
+  updatedAt    DateTime? @default(now()) @updatedAt
+
+  // Add relation to User model if you have one
+  user Users @relation(fields: [userId], references: [id])
+  @@map("budgets")
+}
+
+model Goals {
+  id String @id @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  name String @db.VarChar(100)
+  description String @db.Text
+  targetAmount Decimal @db.Decimal(15, 2) @map("target_amount")
+  savedAmount Decimal @db.Decimal(15, 2) @map("saved_amount")
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  tags      Tag[]
+  updatedAt DateTime @default(now()) @updatedAt
+  user Users @relation(fields: [userId], references: [id])
+
+  @@map("goals")
 }
 
-model Profile {
-  id     Int     @id @default(autoincrement())
-  bio    String?
-  user   User    @relation(fields: [userId], references: [id])
-  userId Int     @unique
+model RefreshTokens {
+  id String @id @db.Uuid
+  userId Int @map("user_id") 
+  token String @db.VarChar(255)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens") 
+
 }
 
-model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
-}
+model Reports{
+  id Int @id
+  userId Int @map("user_id")
+  reportDate DateTime @db.Date @map("report_date")
+  totalIncome Decimal? @default(0) @db.Decimal(15, 2) @map("total_income")
+  totalExpenses Decimal? @default(0) @db.Decimal(15, 2) @map("total_expenses")
+  budgetStatus Json ? @map("budget_status")
+  createdAt DateTime @default(now()) @map("created_at")
 
-model Tag {
-  id Int @id @default(autoincrement())
-  name String
-  posts Post[]
+  @@map("reports")
 }
